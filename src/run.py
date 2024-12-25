@@ -1,6 +1,5 @@
 import logging
 import os
-import random
 import time
 from collections import defaultdict
 
@@ -13,6 +12,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from src.data_handler import DatasetForMatching, DataCollatorForMatching, SingleProcessDataLoader, \
     MultiProcessDataLoader
 from src.models.tnlrv3.configuration_tnlrv3 import TuringNLRv3Config
+import secrets
 
 
 def setup(rank, args):
@@ -22,7 +22,7 @@ def setup(rank, args):
     # Explicitly setting seed
     torch.manual_seed(args.random_seed)
     np.random.seed(args.random_seed)
-    random.seed(args.random_seed)
+    secrets.SystemRandom().seed(args.random_seed)
 
 
 def cleanup():

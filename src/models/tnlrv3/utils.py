@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 import logging
 import os
 import json
-import random
 import glob
 import torch
 import tqdm
@@ -11,6 +10,8 @@ import array
 import collections
 import torch.utils.data
 from transformers.file_utils import WEIGHTS_NAME
+import secrets
+
 try:
     import lmdb
 except:
@@ -80,11 +81,11 @@ class Seq2seqDatasetForTuringNLRv3(torch.utils.data.Dataset):
             return ids
 
     def get_masked_token(self, tk_id):
-        p = random.random()
+        p = secrets.SystemRandom().random()
         if p < self.keep_prob:
             return tk_id
         elif p < self.keep_prob + self.random_prob:
-            return random.randint(0, self.vocab_size - 1)
+            return secrets.SystemRandom().randint(0, self.vocab_size - 1)
         else:
             return self.mask_id
 
@@ -105,7 +106,7 @@ class Seq2seqDatasetForTuringNLRv3(torch.utils.data.Dataset):
             for i in range(num_source_tokens):
                 tk_id = source_ids[i]
                 if tk_id != self.cls_id and tk_id != self.sep_id:
-                    r = random.random()
+                    r = secrets.SystemRandom().random()
                     if r < self.source_mask_prob:
                         source_ids[i] = self.get_masked_token(tk_id)
 
@@ -124,7 +125,7 @@ class Seq2seqDatasetForTuringNLRv3(torch.utils.data.Dataset):
                 masked_pos.append(pos)
                 masked_weights.append(1)
 
-                r = random.random()
+                r = secrets.SystemRandom().random()
                 if r < self.target_mask_prob and pos > 0:
                     target_ids[pos] = self.get_masked_token(target_ids[pos])
             
@@ -135,7 +136,7 @@ class Seq2seqDatasetForTuringNLRv3(torch.utils.data.Dataset):
             return source_ids, target_ids, masked_ids, masked_pos, masked_weights, num_source_tokens, num_target_tokens
         elif self.finetuning_method == 'v1':
             masked_pos = list(range(num_target_tokens))
-            random.shuffle(masked_pos)
+            secrets.SystemRandom().shuffle(masked_pos)
 
             num_masked_token = \
                 min(self.num_max_mask_token, int(self.target_mask_prob * num_target_tokens))
@@ -164,7 +165,7 @@ class Seq2seqDatasetForTuringNLRv3(torch.utils.data.Dataset):
                 masked_tk_id = self.get_masked_token(tk_id)
                 pseudo_ids.append(masked_tk_id)
                 label_ids.append(tk_id)
-                r = random.random()
+                r = secrets.SystemRandom().random()
                 if r < self.target_mask_prob:
                     target_ids[pos] = masked_tk_id
             label_ids = self.__pad(label_ids, self.max_target_len)
@@ -331,7 +332,7 @@ def load_and_cache_examples(
             )
 
         if shuffle:
-            random.shuffle(features)
+            secrets.SystemRandom().shuffle(features)
             logger.info("Shuffle the features !")
 
         logger.info("Source length:")

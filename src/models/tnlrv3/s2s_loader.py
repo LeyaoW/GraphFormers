@@ -1,16 +1,15 @@
 import numpy as np
-
-from random import randint
 import logging
 import torch
 import torch.utils.data
+import secrets
 
 
 logger = logging.getLogger(__name__)
 
 
 def get_random_word(vocab_words):
-    i = randint(0, len(vocab_words)-1)
+    i = secrets.SystemRandom().randint(0, len(vocab_words)-1)
     return vocab_words[i]
 
 
